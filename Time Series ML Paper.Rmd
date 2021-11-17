@@ -317,6 +317,68 @@ stats::predict(enetfit.vht$finalModel, type = "coefficients", s = enetfit.vht$be
 # autoplot(GDPforecasts)+ggtitle("GDP growth and forecasts from Random Forest and Elastic Net Methods",
 #                               subtitle="2020Q2 removed because drop distorts the scale")
 ```
+Ridge
+```{r}
+
+##Creating test and training sets for VDE
+
+vde.train=final_merged_vde[1:1888,]
+vde.test= final_merged_vde[1889:3776, ]
+view(vde.train)
+view(vde.test)
+
+##Creating test and training sets for VHT
+
+vht.train=final_merged_vht[1:1888,]
+vht.test= final_merged_vht[1889:3776, ]
+view(vht.train)
+view(vht.test)
+```
+
+```{r} 
+##Creating ridge and pulling coefficients for VDE and VHT, Evaluating R^2 for VDE and VHT
+y_vde<- train_vde$coredata.volvde.
+x_vde<- data.matrix(train_vde[, c("detr_crude_oil_prices", "detr_intl_dol", "detr_yield",
+         "chifed_nfci_detrended", "intl_job_claims_value", "m.1_detrended", "fed_bal_detrended",
+         "treas_gen_acct_detrended", "ur_detr", "cpi_detr", "adjusted_detr")])
+x_test_vde <- data.matrix(test_vde[, c("detr_crude_oil_prices", "detr_intl_dol", "detr_yield",
+         "chifed_nfci_detrended", "intl_job_claims_value", "m.1_detrended", "fed_bal_detrended",
+         "treas_gen_acct_detrended", "ur_detr", "cpi_detr", "adjusted_detr")])
+cv_model <- cv.glmnet(x_vde, y_vde, alpha = 0, normalize = FALSE)
+opt_lambda <- cv_model$lambda.min
+plot(cv_model)
+opt_RIDGE_model <- glmnet(x_vde, y_vde, lambda = opt_lambda, family="gaussian", alpha=0)
+coef(opt_RIDGE_model)
+summary(opt_RIDGE_model)
+y_predicted <- predict(opt_RIDGE_model, s = opt_lambda, newx = x_vde)
+sum(mean(y_vde)-mean(y_predicted))
+sst <- sum((y_vde - mean(y_vde))^2)
+sse <- sum((y_vde - y_predicted)^2)
+sse
+rsq <- 1 - sse/sst
+rsq
+
+y_vht<- train_vht$coredata.volvht.
+x_vht<- data.matrix(train_vht[, c("detr_crude_oil_prices", "detr_intl_dol", "detr_yield",
+         "chifed_nfci_detrended", "intl_job_claims_value", "m.1_detrended", "fed_bal_detrended",
+         "treas_gen_acct_detrended", "ur_detr", "cpi_detr", "adjusted_detr")])
+x_test_vht <- data.matrix(test_vht[, c("detr_crude_oil_prices", "detr_intl_dol", "detr_yield",
+         "chifed_nfci_detrended", "intl_job_claims_value", "m.1_detrended", "fed_bal_detrended",
+         "treas_gen_acct_detrended", "ur_detr", "cpi_detr", "adjusted_detr")])
+cv_model <- cv.glmnet(x_vht, y_vht, alpha = 0, normalize = FALSE)
+opt_lambda <- cv_model$lambda.min
+plot(cv_model)
+opt_RIDGE_model <- glmnet(x_vht, y_vht, lambda = opt_lambda, family="gaussian", alpha=0)
+coef(opt_RIDGE_model)
+summary(opt_RIDGE_model)
+y_predicted <- predict(opt_RIDGE_model, s = opt_lambda, newx = x_vht)
+sum(mean(y_vht)-mean(y_predicted))
+sst <- sum((y_vht - mean(y_vht))^2)
+sse <- sum((y_vht - y_predicted)^2)
+sse
+rsq <- 1 - sse/sst
+rsq
+```
 
 
 + Type of Problem: **Regression**
